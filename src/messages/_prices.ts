@@ -4,20 +4,17 @@ import axios from "axios";
 import { Relay } from "nostr-tools";
 import { Utils } from "../utils";
 
-type Props = {
-  relay: Relay;
-  sk: Uint8Array;
-};
+type Props = { relay: Relay; sk: Uint8Array };
 
-const baseUrl = process.env.SERVICE_MURRAY_SERVICE;
+const SERVICE_MURRAY_SERVICE = process.env.SERVICE_MURRAY_SERVICE;
 
 export const Prices = {
   cron: "0 40 1,3,5,7,9,11,13,15,17,19,21,23 * * *",
   action: async ({ relay, sk }: Props): Promise<void> => {
     try {
-      const result = await axios.get(`${baseUrl}/prices`);
-      const fields = result.data.data?.fields;
-      const title = result.data.data?.title;
+      const result = await axios.get(`${SERVICE_MURRAY_SERVICE}/prices`);
+      const fields = result.data?.data?.fields;
+      const title = result.data?.data?.title;
 
       if (fields && title) {
         const messageArr = [];
@@ -39,10 +36,15 @@ export const Prices = {
 
         const message = messageArr.join("\n");
 
-        await Utils.sendEvent({ relay, sk, content: message, tags: [["Bitcoin", "Price"]] });
+        await Utils.sendEvent({
+          relay,
+          sk,
+          content: message,
+          tags: [["Bitcoin", "Price"]],
+        });
       }
-    } catch (error) {
-      console.log(error);
+    } finally {
+      console.log("Prices message.");
     }
   },
 };

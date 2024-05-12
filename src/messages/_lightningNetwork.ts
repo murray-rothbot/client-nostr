@@ -6,40 +6,44 @@ import { Utils } from "../utils";
 
 type Props = { relay: Relay; sk: Uint8Array };
 
-const baseUrl = process.env.SERVICE_MURRAY_SERVICE;
+const SERVICE_MURRAY_SERVICE = process.env.SERVICE_MURRAY_SERVICE;
 
 export const LightningNetwork = {
   cron: "0 30 10,19 * * *",
   action: async ({ relay, sk }: Props): Promise<void> => {
     try {
-      const result = await axios.get(`${baseUrl}/lightning/statistics`);
-      const fields = result.data.data?.fields;
+      const result = await axios.get(`${SERVICE_MURRAY_SERVICE}/lightning/statistics`);
+      const fields = result.data?.data?.fields;
 
       if (fields) {
-        const messageArr = [];
-        const { nodes, clearNet, tor, avgCapacity, totalCapacity, channels, avgFee, avgBaseFee } = fields;
+        const messageLines = [];
 
-        messageArr.push(`⚡ Lightning Network`);
-        messageArr.push(``);
-        messageArr.push(`${totalCapacity.description}: ${totalCapacity.value}`);
-        messageArr.push(`${avgCapacity.description}: ${avgCapacity.value}`);
-        messageArr.push(``);
-        messageArr.push(`${nodes.description}: ${nodes.value}`);
-        messageArr.push(`🤵‍♂️ Clearnet: ${clearNet.value}`);
-        messageArr.push(`🕵️ Tor: ${tor.value}`);
-        messageArr.push(`${channels.description}: ${channels.value}`);
-        messageArr.push(``);
-        messageArr.push(`${avgFee.description}: ${avgFee.value}`);
-        messageArr.push(`${avgBaseFee.description}: ${avgBaseFee.value}`);
-        messageArr.push(``);
-        messageArr.push(`#Bitcoin #LightningNetwork`);
+        messageLines.push(`⚡ Lightning Network`);
+        messageLines.push(``);
+        messageLines.push(`${fields.totalCapacity.description}: ${fields.totalCapacity.value}`);
+        messageLines.push(`${fields.avgCapacity.description}: ${fields.avgCapacity.value}`);
+        messageLines.push(``);
+        messageLines.push(`${fields.nodes.description}: ${fields.nodes.value}`);
+        messageLines.push(`🤵‍♂️ Clearnet: ${fields.clearNet.value}`);
+        messageLines.push(`🕵️ Tor: ${fields.tor.value}`);
+        messageLines.push(`${fields.channels.description}: ${fields.channels.value}`);
+        messageLines.push(``);
+        messageLines.push(`${fields.avgFee.description}: ${fields.avgFee.value}`);
+        messageLines.push(`${fields.avgBaseFee.description}: ${fields.avgBaseFee.value}`);
+        messageLines.push(``);
+        messageLines.push(`#Bitcoin #LightningNetwork`);
 
-        const message = messageArr.join("\n");
+        const message = messageLines.join("\n");
 
-        await Utils.sendEvent({ relay, sk, content: message, tags: [["Bitcoin", "LightningNetwork"]] });
+        await Utils.sendEvent({
+          relay,
+          sk,
+          content: message,
+          tags: [["Bitcoin", "LightningNetwork"]],
+        });
       }
-    } catch (error) {
-      console.log(error);
+    } finally {
+      console.log("Lightning Network message.");
     }
   },
 };

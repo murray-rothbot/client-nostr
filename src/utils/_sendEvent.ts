@@ -31,7 +31,6 @@ export const sendEvent = async ({ sk, relay, content = "", tags = [], kind = 1 }
   }
 
   const signedEvent = NostrTools.finalizeEvent(event, sk);
-  console.log(signedEvent);
 
   if (CONSOLE_MODE === "true") return;
 

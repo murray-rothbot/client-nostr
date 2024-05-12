@@ -6,36 +6,50 @@ import { Utils } from "../utils";
 
 type Props = { relay: Relay; sk: Uint8Array };
 
-const baseUrl = process.env.SERVICE_MURRAY_SERVICE;
+const SERVICE_MURRAY_SERVICE = process.env.SERVICE_MURRAY_SERVICE;
 
 export const MarketCap = {
   cron: "0 45 10,19 * * *",
   action: async ({ relay, sk }: Props): Promise<void> => {
     try {
-      const result = await axios.get(`${baseUrl}/market/capitalization`);
-      const fields = result.data.data?.fields;
+      const result = await axios.get(`${SERVICE_MURRAY_SERVICE}/market/capitalization`);
+      const fields = result.data?.data?.fields;
 
       if (fields) {
-        const messageArr = [];
+        const messageLines = [];
 
-        messageArr.push(`💰 Bitcoin Market Cap`);
-        messageArr.push(``);
-        messageArr.push(`🇺🇸 Price: ${fields.btcusd.value.price.value}`);
-        messageArr.push(`⚡ Sats/USD: ${fields.btcusd.value.satsPerFiat.value}`);
-        messageArr.push(`💰 Market Cap: ${fields.btcusd.value.marketCap.value}`);
-        messageArr.push(``);
-        messageArr.push(`🇧🇷 Price: ${fields.btcbrl.value.price.value}`);
-        messageArr.push(`⚡ Sats/BRL: ${fields.btcbrl.value.satsPerFiat.value}`);
-        messageArr.push(`💰 Market Cap: ${fields.btcbrl.value.marketCap.value}`);
-        messageArr.push(``);
-        messageArr.push(`#Bitcoin #MarketCap #price`);
+        messageLines.push(`💰 Bitcoin Market Cap`);
+        messageLines.push(``);
 
-        const message = messageArr.join("\n");
+        if (fields.btcusdt) {
+          messageLines.push(`🇺🇸 Price: ${fields.btcusdt.value.price.value}`);
+          messageLines.push(`⚡ Sats/USD: ${fields.btcusdt.value.satsPerFiat.value}`);
+          messageLines.push(`💰 Market Cap: ${fields.btcusdt.value.marketCap.value}`);
+        }
 
-        await Utils.sendEvent({ relay, sk, content: message, tags: [["Bitcoin", "MarketCap", "price"]] });
+        if (fields.btcusd) {
+          messageLines.push(`🇺🇸 Price: ${fields.btcusd.value.price.value}`);
+          messageLines.push(`⚡ Sats/USD: ${fields.btcusd.value.satsPerFiat.value}`);
+          messageLines.push(`💰 Market Cap: ${fields.btcusd.value.marketCap.value}`);
+        }
+
+        messageLines.push(`🇧🇷 Price: ${fields.btcbrl.value.price.value}`);
+        messageLines.push(`⚡ Sats/BRL: ${fields.btcbrl.value.satsPerFiat.value}`);
+        messageLines.push(`💰 Market Cap: ${fields.btcbrl.value.marketCap.value}`);
+        messageLines.push(``);
+        messageLines.push(`#Bitcoin #MarketCap #price`);
+
+        const message = messageLines.join("\n");
+
+        await Utils.sendEvent({
+          relay,
+          sk,
+          content: message,
+          tags: [["Bitcoin", "MarketCap", "price"]],
+        });
       }
-    } catch (error) {
-      console.log(error);
+    } finally {
+      console.log("Market Cap message.");
     }
   },
 };

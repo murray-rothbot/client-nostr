@@ -6,38 +6,39 @@ import { Utils } from "../utils";
 
 type Props = { relay: Relay; sk: Uint8Array };
 
-const baseUrl = process.env.SERVICE_MURRAY_SERVICE;
+const SERVICE_MURRAY_SERVICE = process.env.SERVICE_MURRAY_SERVICE;
 
 export const Halving = {
   cron: "0 15 9,12,14,19,21 * * *",
   action: async ({ relay, sk }: Props): Promise<void> => {
     try {
-      const result = await axios.get(`${baseUrl}/blockchain/halving`);
-      const fields = result.data.data?.fields;
+      const result = await axios.get(`${SERVICE_MURRAY_SERVICE}/blockchain/halving`);
+      const fields = result.data?.data?.fields;
+      const title = result.data?.data?.title;
 
-      if (fields) {
-        const messageArr = [];
+      if (fields && title) {
         const currentProgress = fields.completedPercentageRaw.value.toFixed(2);
-        const progressMessage = Utils.createProgressMessage(currentProgress);
+        const progressMessage = Utils.createProgressMessage({ currentProgress });
+        const nextHalvingDate = Utils.formatDate({ date: new Date(fields.nextHalvingDate.value) });
 
-        messageArr.push(result.data.data.title);
-        messageArr.push(``);
-        messageArr.push(progressMessage);
-        messageArr.push(``);
-        messageArr.push(`${fields.halvingCountdown.description}: ${fields.halvingCountdown.value}`);
-        messageArr.push(``);
-        messageArr.push(`${fields.nextHalvingBlock.description}: ${fields.nextHalvingBlock.value}`);
-        messageArr.push(`${fields.height.description}: ${fields.height.value}`);
-        messageArr.push(``);
-        messageArr.push(`${fields.daysUntilHalving.description}: ${fields.daysUntilHalving.value}`);
-        messageArr.push(
-          `${fields.nextHalvingDate.description}: ${Utils.formatDate(new Date(fields.nextHalvingDate.value))}`
-        );
-        messageArr.push(`${fields.halvingEra.description}: ${fields.halvingEra.value}`);
-        messageArr.push(``);
-        messageArr.push(`#Bitcoin #Halving`);
+        const messageLines = [];
 
-        const message = messageArr.join("\n");
+        messageLines.push(title);
+        messageLines.push(``);
+        messageLines.push(progressMessage);
+        messageLines.push(``);
+        messageLines.push(`${fields.halvingCountdown.description}: ${fields.halvingCountdown.value}`);
+        messageLines.push(``);
+        messageLines.push(`${fields.nextHalvingBlock.description}: ${fields.nextHalvingBlock.value}`);
+        messageLines.push(`${fields.height.description}: ${fields.height.value}`);
+        messageLines.push(``);
+        messageLines.push(`${fields.daysUntilHalving.description}: ${fields.daysUntilHalving.value}`);
+        messageLines.push(`${fields.nextHalvingDate.description}: ${nextHalvingDate}`);
+        messageLines.push(`${fields.halvingEra.description}: ${fields.halvingEra.value}`);
+        messageLines.push(``);
+        messageLines.push(`#Bitcoin #Halving`);
+
+        const message = messageLines.join("\n");
 
         await Utils.sendEvent({
           relay,
@@ -46,8 +47,8 @@ export const Halving = {
           tags: [["Bitcoin", "Halving"]],
         });
       }
-    } catch (error) {
-      console.log(error);
+    } finally {
+      console.log("Halving message.");
     }
   },
 };

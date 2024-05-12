@@ -6,36 +6,40 @@ import { Utils } from "../utils";
 
 type Props = { relay: Relay; sk: Uint8Array };
 
-const baseUrl = process.env.SERVICE_MURRAY_SERVICE;
+const SERVICE_MURRAY_SERVICE = process.env.SERVICE_MURRAY_SERVICE;
 
 export const Fees = {
   cron: "0 0 0,2,4,6,8,10,12,14,16,18,20,22,23 * * *",
   action: async ({ relay, sk }: Props): Promise<void> => {
     try {
-      const result = await axios.get(`${baseUrl}/blockchain/fees/recommended`);
-      const fields = result.data.data?.fields;
+      const result = await axios.get(`${SERVICE_MURRAY_SERVICE}/blockchain/fees/recommended`);
+      const fields = result.data?.data?.fields;
 
       if (fields) {
-        const messageArr = [];
-        const { fastestFee, halfHourFee, hourFee, economy, minimum } = fields;
+        const messageLines = [];
 
-        messageArr.push(`💸 Bitcoin Fees`);
-        messageArr.push(``);
-        messageArr.push(`🐇 Fastest : ${fastestFee.value.replace("vByte", "vB")}`);
-        messageArr.push(`🐢 +30 min : ${halfHourFee.value.replace("vByte", "vB")}`);
-        messageArr.push(`🐌 +60 min : ${hourFee.value.replace("vByte", "vB")}`);
-        messageArr.push(`🦥 +90 min : ${economy.value.replace("vByte", "vB")}`);
-        messageArr.push(``);
-        messageArr.push(`🔥 Purge Limit : ${minimum.value.replace("vByte", "vB")}`);
-        messageArr.push(``);
-        messageArr.push(`#Bitcoin #fees`);
+        messageLines.push(`💸 Bitcoin Fees`);
+        messageLines.push(``);
+        messageLines.push(`🐇 Fastest : ${fields.fastestFee.value.replace("vByte", "vB")}`);
+        messageLines.push(`🐢 +30 min : ${fields.halfHourFee.value.replace("vByte", "vB")}`);
+        messageLines.push(`🐌 +60 min : ${fields.hourFee.value.replace("vByte", "vB")}`);
+        messageLines.push(`🦥 +90 min : ${fields.economy.value.replace("vByte", "vB")}`);
+        messageLines.push(``);
+        messageLines.push(`🔥 Purge Limit : ${fields.minimum.value.replace("vByte", "vB")}`);
+        messageLines.push(``);
+        messageLines.push(`#Bitcoin #fees`);
 
-        const message = messageArr.join("\n");
+        const message = messageLines.join("\n");
 
-        await Utils.sendEvent({ relay, sk, content: message, tags: [["bitcoin", "fees"]] });
+        await Utils.sendEvent({
+          relay,
+          sk,
+          content: message,
+          tags: [["bitcoin", "fees"]],
+        });
       }
-    } catch (error) {
-      console.log(error);
+    } finally {
+      console.log("Fees message.");
     }
   },
 };

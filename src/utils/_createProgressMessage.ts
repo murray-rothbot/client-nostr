@@ -1,15 +1,15 @@
-export const createProgressMessage = (currentProgress: number): string => {
-  let progressMessage = "";
+type Props = { currentProgress: number };
+
+export const createProgressMessage = ({ currentProgress }: Props): string => {
+  const progressChars = [];
 
   for (let i = 0; i < 20; i++) {
     if (i < currentProgress * 0.2) {
-      progressMessage += `▓`;
+      progressChars.push(`▓`);
     } else {
-      progressMessage += `░`;
+      progressChars.push(`░`);
     }
   }
 
-  progressMessage += ` ${currentProgress}%`;
-
-  return progressMessage;
+  return `${progressChars.join("")} ${currentProgress}%`;
 };
