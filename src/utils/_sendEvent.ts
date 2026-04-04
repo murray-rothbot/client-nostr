@@ -34,5 +34,9 @@ export const sendEvent = async ({ sk, relay, content = "", tags = [], kind = 1 }
 
   if (CONSOLE_MODE === "true") return;
 
-  await relay.publish(signedEvent);
+  try {
+    await relay.publish(signedEvent);
+  } catch (error) {
+    console.error("Failed to publish event to relay:", error);
+  }
 };

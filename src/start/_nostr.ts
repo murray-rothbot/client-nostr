@@ -10,20 +10,17 @@ const NOSTR_NSEC = `${process.env.NOSTR_NSEC}`;
 type ResponseType = { relay: Relay; sk: Uint8Array };
 
 export const Nostr = async (): Promise<ResponseType> => {
-  try {
-    const { data } = NostrTools.nip19.decode(NOSTR_NSEC);
-    const pk = NostrTools.getPublicKey(data as Uint8Array);
+  const { data } = NostrTools.nip19.decode(NOSTR_NSEC);
+  const pk = NostrTools.getPublicKey(data as Uint8Array);
 
-    const npub = NostrTools.nip19.npubEncode(pk);
-    console.log(`https://primal.net/p/${npub}`);
+  const npub = NostrTools.nip19.npubEncode(pk);
+  console.log(`https://primal.net/p/${npub}`);
 
-    const relay = await NostrTools.Relay.connect(NOSTR_RELAY);
+  const relay = await NostrTools.Relay.connect(NOSTR_RELAY);
+  console.log(`Nostr connected to ${NOSTR_RELAY}`);
 
-    return {
-      relay,
-      sk: data as Uint8Array,
-    };
-  } finally {
-    console.log("Nostr connected");
-  }
+  return {
+    relay,
+    sk: data as Uint8Array,
+  };
 };
