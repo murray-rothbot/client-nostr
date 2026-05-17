@@ -1,10 +1,29 @@
 import { CronJob } from "cron";
 import { Relay } from "nostr-tools";
+import http from "node:http";
 import { Start } from "./start";
 
 let activeRelay: Relay | null = null;
 let activeCrons: CronJob<null, null>[] = [];
 let isRestarting = false;
+
+const startHealthServer = (): void => {
+  const port = Number(process.env.PORT || 4003);
+  const server = http.createServer((req, res) => {
+    if (req.url === "/health") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: true, service: "client-nostr" }));
+      return;
+    }
+
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("client-nostr");
+  });
+
+  server.listen(port, () => {
+    console.log(`Health server listening on :${port}`);
+  });
+};
 
 process.on("unhandledRejection", (reason) => {
   console.error("Unhandled rejection caught:", reason);
@@ -58,4 +77,5 @@ const restart = () => {
   }, 1000 * 60);
 };
 
+startHealthServer();
 init();
